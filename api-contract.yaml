@@ -1,0 +1,64 @@
+openapi: 3.0.3
+info:
+  title: Sims 4 DaaS (Data as a Service) Companion API
+  description: API Contract untuk menyajikan rekomendasi kecocokan antara Karier dan Sifat (Traits) di The Sims 4. Dibuat khusus untuk kebutuhan Data Platform Intern tiket.com.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development Server
+
+paths:
+  /recommendations:
+    get:
+      summary: Mengambil semua data rekomendasi karir dan trait
+      description: Endpoint ini mengembalikan daftar kombinasi karier, cabang karier, gaji, emosi ideal, dan kecocokan sifat berdasarkan database.
+      responses:
+        '200':
+          description: Berhasil mengambil data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        career_name:
+                          type: string
+                          example: Tech Guru
+                        branch:
+                          type: string
+                          example: Startup Entrepreneur
+                        base_salary:
+                          type: integer
+                          example: 51
+                        ideal_mood:
+                          type: string
+                          example: Focused
+                        trait_name:
+                          type: string
+                          example: Genius
+                        compatibility_score:
+                          type: integer
+                          example: 5
+                        reason:
+                          type: string
+                          example: Sifat Genius sangat membantu mempertahankan mood Focused saat coding.
+        '500':
+          description: Terjadi kesalahan pada server internal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Gagal mengambil data platform.

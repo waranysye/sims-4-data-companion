@@ -1,0 +1,40 @@
+services:
+  # 1. Database Engine
+  postgres_db:
+    image: postgres:18-alpine
+    container_name: sims_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supersecretpassword # Ganti sesuai keinginanmu
+      POSTGRES_DB: sims4_db
+    ports:
+      - "28711:5432" # Tetap binding ke port laptopmu yang kemarin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Caching Engine (Mainan Baru Kita!)
+  redis_cache:
+    image: redis:7-alpine
+    container_name: sims_redis
+    ports:
+      - "6379:6379"
+
+  # 3. Backend App Engine
+  backend_api:
+    build: .
+    container_name: sims_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres_db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=supersecretpassword
+      - DB_NAME=sims4_db
+      - REDIS_HOST=redis_cache:6379
+    depends_on:
+      - postgres_db
+      - redis_cache
+
+volumes:
+  postgres_data:
