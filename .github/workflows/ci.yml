@@ -1,0 +1,31 @@
+name: Go Automated Integration Test (CI)
+
+# 🚀 Robot akan berjalan otomatis SETIAP KALI ada kode baru yang di-push ke branch main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # Robot menyalakan server Ubuntu virtual di Cloud
+
+    steps:
+    # Langkah 1: Unduh kode dari repositori GitHub kamu ke dalam server robot
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Langkah 2: Set up lingkungan bahasa pemrograman Go di server robot
+    - name: Set up Go Environment
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21' # Sesuaikan dengan versi Go-mu
+
+    # Langkah 3: Unduh semua library/dependencies yang tertulis di go.mod otomatis
+    - name: Install Dependencies
+      run: go mod download
+
+    # Langkah 4: Suruh robot menjalankan unit test secara otomatis!
+    - name: Run Automated Test
+      run: go test -v ./...
