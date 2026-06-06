@@ -24,7 +24,7 @@ func ConnectDB() *pgxpool.Pool {
 	}
 	dbPassword := os.Getenv("DB_PASSWORD")
 	if dbPassword == "" {
-		dbPassword = "warayufa28" // ⚠️ Sesuaikan password lokalmu di sini
+		dbPassword = "callmera" // ⚠️ Sesuaikan password lokalmu di sini
 	}
 	dbName := os.Getenv("DB_NAME")
 	if dbName == "" {

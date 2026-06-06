@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-// Struktur Data untuk menampung hasil query gabungan (JOIN)
+// 👈 Kita tambahkan field baru di struct agar Golang bisa menampung data barunya
 type CareerRecommendation struct {
 	CareerName         string `json:"career_name"`
 	Branch             string `json:"branch"`
@@ -17,6 +17,10 @@ type CareerRecommendation struct {
 	Reason             string `json:"reason"`
 }
 
+type CareerRepositoryInterface interface {
+	GetRecommendations() ([]CareerRecommendation, error)
+}
+
 type CareerRepository struct {
 	DB *pgxpool.Pool
 }
@@ -25,18 +29,17 @@ func NewCareerRepository(db *pgxpool.Pool) *CareerRepository {
 	return &CareerRepository{DB: db}
 }
 
-// Fungsi untuk mengambil rekomendasi kecocokan karir dan sifat
 func (r *CareerRepository) GetRecommendations() ([]CareerRecommendation, error) {
+	// 👈 Query SQL kita perbarui untuk menarik semua kolom dari careers dan career_recommendations
 	query := `
 		SELECT 
-			c.name, c.branch, c.base_salary, c.ideal_mood,
-			t.name, ctr.compatibility_score, ctr.reason
-		FROM career_trait_recommendations ctr
-		JOIN careers c ON ctr.career_id = c.id
-		JOIN traits t ON ctr.trait_id = t.id
-		ORDER BY ctr.compatibility_score DESC;
+			c.name, c.branch, c.base_salary, c.ideal_mood, 
+			t.name, cr.compatibility_score, cr.reason
+		FROM career_recommendations cr
+		JOIN careers c ON cr.career_id = c.id
+		JOIN traits t ON cr.trait_id = t.id
+		ORDER BY cr.compatibility_score DESC;
 	`
-
 	rows, err := r.DB.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
@@ -45,16 +48,16 @@ func (r *CareerRepository) GetRecommendations() ([]CareerRecommendation, error) 
 
 	var list []CareerRecommendation
 	for rows.Next() {
-		var cr CareerRecommendation
+		var row CareerRecommendation
+		// 👈 Scan semua data baru ke dalam struct variabel masing-masing
 		err := rows.Scan(
-			&cr.CareerName, &cr.Branch, &cr.BaseSalary, &cr.IdealMood,
-			&cr.TraitName, &cr.CompatibilityScore, &cr.Reason,
+			&row.CareerName, &row.Branch, &row.BaseSalary, &row.IdealMood,
+			&row.TraitName, &row.CompatibilityScore, &row.Reason,
 		)
 		if err != nil {
 			return nil, err
 		}
-		list = append(list, cr) //  Benar
+		list = append(list, row)
 	}
-
 	return list, nil
 }

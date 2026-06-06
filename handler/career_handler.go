@@ -7,24 +7,21 @@ import (
 )
 
 type CareerHandler struct {
-	Usecase *usecase.CareerUsecase
+	Usecase usecase.CareerUsecaseInterface // 👈 Pakai Interface juga
 }
 
-func NewCareerHandler(u *usecase.CareerUsecase) *CareerHandler {
+func NewCareerHandler(u usecase.CareerUsecaseInterface) *CareerHandler {
 	return &CareerHandler{Usecase: u}
 }
 
 func (h *CareerHandler) FetchRecommendations(c *fiber.Ctx) error {
 	data, err := h.Usecase.GetRecommendations()
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Internal Server Error: " + err.Error(),
-		})
+		return err // 👈 Cukup return error-nya, biar Global Error Handler yang mengurus formatnya!
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   data,
+		"success": true,
+		"data":    data,
 	})
 }

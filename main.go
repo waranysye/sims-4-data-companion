@@ -28,18 +28,22 @@ func main() {
 		Addr: redisHost,
 	})
 
-	app := fiber.New()
+	// Daftarkan GlobalErrorHandler saat membuat instance Fiber baru
+	app := fiber.New(fiber.Config{
+		ErrorHandler: handler.GlobalErrorHandler,
+	})
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
+	app.Post("/api/v1/auth/login", handler.Login)
 
 	// Dependency Injection manual ala Clean Architecture
 	careerRepo := repository.NewCareerRepository(dbPool)
 	careerUsecase := usecase.NewCareerUsecase(careerRepo, rdb)
 	careerHandler := handler.NewCareerHandler(careerUsecase)
 
-	app.Get("/api/v1/recommendations", careerHandler.FetchRecommendations)
+	app.Get("/api/v1/recommendations", handler.JWTMiddleware, careerHandler.FetchRecommendations)
 
 	app.Listen(":8080")
 }
