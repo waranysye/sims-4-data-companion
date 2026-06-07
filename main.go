@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os" // 👈 1. Kita tambahkan package os di sini
 	"sims-daas/config"
 	"sims-daas/handler"
@@ -44,6 +45,13 @@ func main() {
 	careerHandler := handler.NewCareerHandler(careerUsecase)
 
 	app.Get("/api/v1/recommendations", handler.JWTMiddleware, careerHandler.FetchRecommendations)
+	// 📡 Inisialisasi dan jalankan gRPC Server di Goroutine (Background Thread)
+	grpcServer := handler.NewGrpcServer(careerUsecase)
+	go func() {
+		if err := grpcServer.Run(); err != nil {
+			fmt.Printf("Gagal menyalakan server gRPC: %v\n", err)
+		}
+	}()
 
 	app.Listen(":8080")
 }
