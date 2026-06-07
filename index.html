@@ -3,191 +3,436 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sims 4 Data Companion Engine 💎</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>Sims 4 Data Companion — Sulani 🌺</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0a2e3a 0%, #0e4a5c 30%, #0c7c8c 60%, #06a3a0 100%);
             background-attachment: fixed;
-            color: #f8fafc;
+            color: #e0f7f9;
+            overflow-x: hidden;
         }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+        /* === ANIMATED OCEAN WAVES === */
+        .waves-bg {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 220px;
+            z-index: 0;
+            pointer-events: none;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 300%;
+            height: 100%;
+            border-radius: 40% 40% 0 0;
+            opacity: 0.18;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-            border-radius: 4px;
+        .wave1 { background: #00e5ff; animation: waveAnim 8s linear infinite; }
+        .wave2 { background: #80deea; animation: waveAnim 11s linear infinite reverse; opacity: 0.12; }
+        .wave3 { background: #26c6da; animation: waveAnim 14s linear infinite; opacity: 0.10; }
+        @keyframes waveAnim {
+            0%   { transform: translateX(0) scaleY(1); }
+            50%  { transform: translateX(25%) scaleY(1.08); }
+            100% { transform: translateX(0) scaleY(1); }
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 4px;
+
+        /* Floating bubbles */
+        .bubbles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.07);
+            border: 1px solid rgba(0,229,255,0.15);
+            animation: floatUp linear infinite;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.8);
+        @keyframes floatUp {
+            to { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
         }
-        .hover-scale {
-            transition: transform 0.2s ease, background-color 0.2s ease;
+
+        /* === LAYOUT === */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
         }
-        .hover-scale:hover {
-            transform: translateY(-2px);
-            background: rgba(51, 65, 85, 0.8);
+
+        /* === HEADER === */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeDown 0.8s ease both;
         }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,229,255,0.12);
+            border: 1px solid rgba(0,229,255,0.3);
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #80deea;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #80deea 0%, #ffffff 40%, #ffeb3b 80%, #ff8a65 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            text-shadow: none;
+        }
+        .subtitle {
+            color: rgba(224, 247, 249, 0.65);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 600;
+        }
+
+        /* === GLASS PANEL === */
+        .card {
+            background: rgba(10, 60, 75, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 229, 255, 0.18);
+            border-radius: 20px;
+            box-shadow: 0 8px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+            overflow: hidden;
+            animation: fadeUp 0.9s ease both;
+        }
+
+        /* === CARD HEADER === */
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(0,229,255,0.12);
+            background: rgba(0,229,255,0.04);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #e0f7f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title-icon { font-size: 1.5rem; }
+
+        .api-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: linear-gradient(135deg, #00acc1, #00838f);
+            color: #fff;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0,188,212,0.35);
+        }
+        .api-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,188,212,0.5); }
+
+        /* === TABLE === */
+        .table-wrap { overflow-x: auto; padding: 0 0 8px; }
+        .table-wrap::-webkit-scrollbar { height: 6px; }
+        .table-wrap::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        .table-wrap::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.3); border-radius: 3px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        thead tr {
+            border-bottom: 1px solid rgba(0,229,255,0.15);
+        }
+        th {
+            padding: 14px 24px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(128, 222, 234, 0.7);
+        }
+        tbody tr {
+            border-bottom: 1px solid rgba(0,229,255,0.06);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        tbody tr:hover {
+            background: rgba(0,229,255,0.06);
+            transform: translateX(3px);
+        }
+        td { padding: 18px 24px; vertical-align: top; }
+
+        .career-name { font-weight: 900; font-size: 15px; color: #e0f7f9; }
+        .career-branch { font-size: 12px; color: rgba(128,222,234,0.65); margin-top: 3px; font-weight: 600; }
+
+        .salary-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            background: rgba(255,235,59,0.12);
+            border: 1px solid rgba(255,235,59,0.25);
+            border-radius: 8px;
+            color: #fff176;
+            font-weight: 900;
+            font-size: 14px;
+        }
+        .salary-unit { font-size: 11px; font-weight: 600; opacity: 0.7; margin-left: 2px; }
+
+        .mood-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .mood-Focused    { background: rgba(0,188,212,0.2); color: #4dd0e1; border: 1px solid rgba(0,188,212,0.35); }
+        .mood-Energized  { background: rgba(255,152,0,0.15); color: #ffcc80; border: 1px solid rgba(255,152,0,0.3); }
+        .mood-Inspired   { background: rgba(156,39,176,0.18); color: #ce93d8; border: 1px solid rgba(156,39,176,0.3); }
+        .mood-Confident  { background: rgba(76,175,80,0.15); color: #a5d6a7; border: 1px solid rgba(76,175,80,0.3); }
+        .mood-Flirty     { background: rgba(233,30,99,0.15); color: #f48fb1; border: 1px solid rgba(233,30,99,0.3); }
+        .mood-default    { background: rgba(255,255,255,0.08); color: #b0bec5; border: 1px solid rgba(255,255,255,0.12); }
+
+        .trait-name { font-weight: 900; color: #ffcc80; font-size: 14px; }
+        .score-chip {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 6px;
+            color: #80deea;
+        }
+        .reason-text {
+            font-size: 11px;
+            color: rgba(224,247,249,0.45);
+            margin-top: 4px;
+            max-width: 200px;
+            white-space: normal;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .travel-dest { font-weight: 900; color: #80cbc4; font-size: 13px; }
+        .travel-desc { font-size: 11px; color: rgba(224,247,249,0.45); margin-top: 3px; font-weight: 600; white-space: normal; max-width: 200px; line-height: 1.4; }
+        .travel-price { font-size: 12px; color: #fff176; font-weight: 800; margin-top: 4px; }
+        .no-travel { font-size: 12px; color: rgba(224,247,249,0.3); font-style: italic; }
+
+        /* loading / error */
+        .loading-cell, .error-cell { text-align: center; padding: 60px 24px; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(0,229,255,0.15);
+            border-top-color: #00e5ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: rgba(224,247,249,0.5); font-weight: 700; }
+        .error-box {
+            display: inline-block;
+            padding: 14px 24px;
+            background: rgba(239,83,80,0.12);
+            border: 1px solid rgba(239,83,80,0.25);
+            border-radius: 12px;
+            color: #ef9a9a;
+            font-weight: 700;
+        }
+        .error-detail { font-size: 13px; opacity: 0.75; margin-top: 4px; font-weight: 600; }
+
+        /* footer */
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            color: rgba(224,247,249,0.3);
+            font-size: 13px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeDown { from { opacity:0; transform:translateY(-24px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeUp   { from { opacity:0; transform:translateY(24px);  } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-10 flex flex-col items-center">
+<body>
 
-    <div class="w-full max-w-7xl">
-        <header class="mb-12 text-center animate-fade-in-down">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 mb-4 drop-shadow-sm">
-                💎 Sims Data Platform
-            </h1>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-                Advanced Data-as-a-Service (DaaS) aggregating game metrics and travel package recommendations in real-time.
-            </p>
-        </header>
+<!-- Animated Waves -->
+<div class="waves-bg">
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="wave wave3"></div>
+</div>
 
-        <div class="glass-panel rounded-2xl overflow-hidden p-6 md:p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Analytics Dashboard
-                </h2>
-                <a href="http://localhost:8888/swagger" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-500/30">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    API Docs
-                </a>
+<!-- Floating Bubbles -->
+<div class="bubbles" id="bubbles"></div>
+
+<div class="container">
+    <header>
+        <div class="badge">🌺 SULANI · ISLAND LIVING</div>
+        <h1>Sims 4 Data Companion</h1>
+        <p class="subtitle">Data-as-a-Service platform for career recommendations, trait matching, and island-inspired travel packages.</p>
+    </header>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="card-title-icon">🐚</span>
+                Career & Trait Analytics
             </div>
-
-            <div class="overflow-x-auto custom-scrollbar pb-4">
-                <table class="min-w-full text-left text-sm whitespace-nowrap">
-                    <thead class="text-xs uppercase tracking-wider text-slate-400 border-b border-slate-700">
-                        <tr>
-                            <th class="px-6 py-4 font-semibold">Career & Branch</th>
-                            <th class="px-6 py-4 font-semibold">Earnings</th>
-                            <th class="px-6 py-4 font-semibold">Ideal Mood</th>
-                            <th class="px-6 py-4 font-semibold">Matched Trait</th>
-                            <th class="px-6 py-4 font-semibold">Travel Recommendation</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body" class="divide-y divide-slate-800">
-                        <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
-                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mb-4"></div>
-                                <p class="text-slate-500 font-medium animate-pulse">Aggregating Data from Microservices...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <a href="http://localhost:8888/swagger" target="_blank" class="api-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                API Docs
+            </a>
         </div>
-        
-        <footer class="mt-12 text-center text-slate-500 text-sm">
-            <p>Built with Golang, Node.js, PostgreSQL & Redis.</p>
-        </footer>
-    </div>
 
-<script>
-        async function fetchSimsData() {
-            const tableBody = document.getElementById('data-table-body');
-            
-            try {
-                // 1. Auth Login (JWT)
-                const loginResponse = await fetch('http://localhost:8888/api/v1/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: 'admin', password: 'sims4pro' })
-                });
-
-                const loginResult = await loginResponse.json();
-
-                if (!loginResult.success || !loginResult.token) {
-                    throw new Error("Authentication failed");
-                }
-
-                // 2. Fetch Aggregated Data
-                const response = await fetch('http://localhost:8888/api/v1/recommendations', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${loginResult.token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const result = await response.json();
-                tableBody.innerHTML = ''; 
-
-                if (result.success && Array.isArray(result.data)) {
-                    result.data.forEach(item => {
-                        // Render UI with Travel package if available
-                        let travelHTML = `<span class="text-slate-500 italic">No package matches criteria</span>`;
-                        if (item.recommended_vacation) {
-                            travelHTML = `
-                                <div class="flex flex-col gap-1">
-                                    <span class="font-bold text-emerald-400">✈️ ${item.recommended_vacation.destination}</span>
-                                    <span class="text-xs text-slate-400">§${item.recommended_vacation.price} • ${item.recommended_vacation.description}</span>
-                                </div>
-                            `;
-                        }
-
-                        const row = `
-                            <tr class="hover-scale cursor-pointer group">
-                                <td class="px-6 py-5">
-                                    <div class="font-bold text-white text-base">${item.career_name || '-'}</div>
-                                    <div class="text-slate-400 text-xs mt-1">${item.branch || '-'}</div>
-                                </td>
-                                <td class="px-6 py-5">
-                                    <div class="inline-flex items-center px-2.5 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 font-bold">
-                                        § ${item.base_salary || 0} <span class="text-xs font-normal ml-1">/hr</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-5">
-                                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
-                                        ${item.ideal_mood || '-'}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="font-semibold text-amber-400">${item.trait_name || '-'}</div>
-                                        <div class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">Score: ${item.compatibility_score}/5</div>
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-1 max-w-xs truncate group-hover:whitespace-normal group-hover:text-slate-300 transition-colors" title="${item.reason}">${item.reason || '-'}</div>
-                                </td>
-                                <td class="px-6 py-5">
-                                    ${travelHTML}
-                                </td>
-                            </tr>
-                        `;
-                        tableBody.innerHTML += row;
-                    });
-                } else {
-                    throw new Error(result.error ? result.error.message : "Invalid data format");
-                }
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                tableBody.innerHTML = `
+        <div class="table-wrap">
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center">
-                            <div class="inline-block px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-                                <span class="font-bold">❌ Connection Error</span><br>
-                                <span class="text-sm opacity-80">${error.message || 'Make sure the backend servers are running.'}</span>
-                            </div>
+                        <th>Career & Branch</th>
+                        <th>Earnings</th>
+                        <th>Ideal Mood</th>
+                        <th>Matched Trait</th>
+                        <th>Travel Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <tr>
+                        <td colspan="5" class="loading-cell">
+                            <div class="spinner"></div>
+                            <div class="loading-text">Riding the tide… fetching data from microservices 🌊</div>
                         </td>
                     </tr>
-                `;
-            }
-        }
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        fetchSimsData();
-    </script>
+    <footer>
+        <p>🏄 Built with Golang · Node.js · PostgreSQL · Redis &nbsp;|&nbsp; Sims 4 Data Companion</p>
+    </footer>
+</div>
+
+<script>
+    // Generate floating bubbles
+    const bubbleContainer = document.getElementById('bubbles');
+    for (let i = 0; i < 18; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const size = Math.random() * 60 + 10;
+        b.style.cssText = `
+            width: ${size}px; height: ${size}px;
+            left: ${Math.random() * 100}%;
+            animation-duration: ${Math.random() * 14 + 10}s;
+            animation-delay: ${Math.random() * 10}s;
+        `;
+        bubbleContainer.appendChild(b);
+    }
+
+    function getMoodClass(mood) {
+        const map = { Focused:'mood-Focused', Energized:'mood-Energized', Inspired:'mood-Inspired', Confident:'mood-Confident', Flirty:'mood-Flirty' };
+        return map[mood] || 'mood-default';
+    }
+
+    async function fetchSimsData() {
+        const tableBody = document.getElementById('data-table-body');
+        try {
+            // 1. Auth
+            const loginRes = await fetch('http://localhost:8888/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: 'admin', password: 'sims4pro' })
+            });
+            const loginData = await loginRes.json();
+            if (!loginData.success || !loginData.token) throw new Error('Authentication failed');
+
+            // 2. Fetch Data
+            const res = await fetch('http://localhost:8888/api/v1/recommendations', {
+                headers: { 'Authorization': `Bearer ${loginData.token}` }
+            });
+            const result = await res.json();
+
+            tableBody.innerHTML = '';
+
+            if (result.success && Array.isArray(result.data)) {
+                result.data.forEach(item => {
+                    let travelHTML = `<span class="no-travel">No island getaway found 🐠</span>`;
+                    if (item.recommended_vacation) {
+                        const v = item.recommended_vacation;
+                        travelHTML = `
+                            <div class="travel-dest">🌴 ${v.destination}</div>
+                            <div class="travel-desc">${v.description}</div>
+                            <div class="travel-price">§${v.price} simoleons</div>
+                        `;
+                    }
+
+                    const moodClass = getMoodClass(item.ideal_mood);
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>
+                                <div class="career-name">${item.career_name || '-'}</div>
+                                <div class="career-branch">${item.branch || '-'}</div>
+                            </td>
+                            <td>
+                                <div class="salary-badge">§${item.base_salary || 0}<span class="salary-unit">/hr</span></div>
+                            </td>
+                            <td>
+                                <span class="mood-badge ${moodClass}">${item.ideal_mood || '-'}</span>
+                            </td>
+                            <td>
+                                <div class="trait-name">${item.trait_name || '-'}</div>
+                                <div class="score-chip">Score ${item.compatibility_score}/5</div>
+                                <div class="reason-text">${item.reason || ''}</div>
+                            </td>
+                            <td>${travelHTML}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                throw new Error(result.error ? result.error.message : 'Invalid data format');
+            }
+        } catch (err) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="error-cell">
+                        <div class="error-box">
+                            ❌ Connection Error
+                            <div class="error-detail">${err.message || 'Make sure the backend servers are running.'}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    fetchSimsData();
+</script>
 </body>
 </html>
