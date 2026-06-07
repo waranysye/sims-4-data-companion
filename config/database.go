@@ -5,18 +5,20 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 func ConnectDB() *pgxpool.Pool {
-	// Membaca konfigurasi dari environment variable (Docker), jika tidak ada pakai default localhost
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
 		dbHost = "localhost"
 	}
 	dbPort := os.Getenv("DB_PORT")
 	if dbPort == "" {
-		dbPort = "28711" // Port luar untuk non-docker
+		dbPort = "28711"
 	}
 	dbUser := os.Getenv("DB_USER")
 	if dbUser == "" {
@@ -24,7 +26,7 @@ func ConnectDB() *pgxpool.Pool {
 	}
 	dbPassword := os.Getenv("DB_PASSWORD")
 	if dbPassword == "" {
-		dbPassword = "callmera" // ⚠️ Sesuaikan password lokalmu di sini
+		dbPassword = "callmera"
 	}
 	dbName := os.Getenv("DB_NAME")
 	if dbName == "" {
@@ -33,15 +35,24 @@ func ConnectDB() *pgxpool.Pool {
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
 
+	// 🚀 JALANKAN MIGRASI OTOMATIS SEBELUM KONEK POOL
+	migrationTarget := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
+	m, err := migrate.New("file://db/migrations", migrationTarget)
+	if err == nil {
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+			fmt.Printf("⚠️ Gagal menjalankan database migration: %v\n", err)
+		} else {
+			fmt.Println("🔄 Database migration berhasil disinkronkan!")
+		}
+	}
+
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Gagal memproses konfigurasi database: %v\n", err)
 		os.Exit(1)
 	}
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Gagal terhubung ke PostgreSQL: %v\n", err)
 		os.Exit(1)
 	}
 

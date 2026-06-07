@@ -45,6 +45,11 @@ func main() {
 	careerHandler := handler.NewCareerHandler(careerUsecase)
 
 	app.Get("/api/v1/recommendations", handler.JWTMiddleware, careerHandler.FetchRecommendations)
+
+	// Melayani file Swagger UI dan spesifikasi kontrak API
+	app.Static("/swagger", "./swagger.html")
+	app.Static("/api-contract.yaml", "./api-contract.yaml")
+
 	// 📡 Inisialisasi dan jalankan gRPC Server di Goroutine (Background Thread)
 	grpcServer := handler.NewGrpcServer(careerUsecase)
 	go func() {
@@ -53,5 +58,5 @@ func main() {
 		}
 	}()
 
-	app.Listen(":8080")
+	app.Listen(":8888")
 }

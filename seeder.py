@@ -1,35 +1,22 @@
 import psycopg2
+import csv
+import os
 
 # 1. Konfigurasi Koneksi Database (Docker Port: 28711)
 DB_CONFIG = {
     "dbname": "sims4_db",
     "user": "postgres",
-    "password": "warayufa28",  # Password local laptopmu
+    "password": "supersecretpassword",
     "host": "localhost",
-    "port": "28711"
+    "port": "28712"
 }
 
-# 2. Data Mentah (Mock Data) The Sims 4
-TRAITS_DATA = [
-    ("Genius", "Mental", "Focused"),
-    ("Geek", "Hobby", "Focused"),
-    ("Ambitious", "Emotional", "Confident"),
-    ("Creative", "Emotional", "Inspired")
-]
-
-CAREERS_DATA = [
-    ("Tech Guru", "Startup Entrepreneur", 51, "Focused"),
-    ("Tech Guru", "Pro Gamer", 43, "Focused"),
-    ("Astronaut", "Space Ranger", 114, "Energized"),
-    ("Writer", "Author", 55, "Inspired")
-]
-
-RECOMMENDATIONS_DATA = [
-    (1, 1, 5, "Sifat Genius sangat membantu mempertahankan mood Focused saat coding di Tech Guru."),
-    (1, 2, 4, "Sifat Geek memberikan keuntungan tersendiri saat berinteraksi dengan komputer."),
-    (2, 2, 5, "Seorang Pro Gamer wajib memiliki sifat Geek untuk performa game maksimal."),
-    (4, 4, 5, "Sifat Creative membuat Sim lebih cepat menghasilkan buku berkualitas mahakarya.")
-]
+def load_csv(filename):
+    filepath = os.path.join(os.path.dirname(__file__), 'data', filename)
+    with open(filepath, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        next(reader) # skip header
+        return [tuple(row) for row in reader]
 
 def seed_database():
     conn = None
@@ -75,16 +62,19 @@ def seed_database():
         # 🔄 LANGKAH 2: BERSIHKAN DATA LAMA AGAR TIDAK DUPLIKAT
         cursor.execute("TRUNCATE TABLE career_recommendations, careers, traits RESTART IDENTITY CASCADE;")
 
-        # 🌱 LANGKAH 3: SUNTIK DATA MENTAH
-        for trait in TRAITS_DATA:
+        # 🌱 LANGKAH 3: SUNTIK DATA MENTAH DARI FILE CSV (ETL)
+        traits_data = load_csv('traits.csv')
+        for trait in traits_data:
             cursor.execute("INSERT INTO traits (name, category, generated_mood) VALUES (%s, %s, %s);", trait)
         print("🌱 Traits data seeded successfully!")
 
-        for career in CAREERS_DATA:
+        careers_data = load_csv('careers.csv')
+        for career in careers_data:
             cursor.execute("INSERT INTO careers (name, branch, base_salary, ideal_mood) VALUES (%s, %s, %s, %s);", career)
         print("🌱 Careers data seeded successfully!")
 
-        for rec in RECOMMENDATIONS_DATA:
+        recommendations_data = load_csv('recommendations.csv')
+        for rec in recommendations_data:
             cursor.execute("""
                 INSERT INTO career_recommendations (career_id, trait_id, compatibility_score, reason) 
                 VALUES (%s, %s, %s, %s);

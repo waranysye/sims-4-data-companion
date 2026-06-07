@@ -1,14 +1,14 @@
 services:
   # 1. Database Engine
   postgres_db:
-    image: postgres:18-alpine
+    image: postgres:15-alpine
     container_name: sims_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: supersecretpassword # Ganti sesuai keinginanmu
       POSTGRES_DB: sims4_db
     ports:
-      - "28711:5432" # Tetap binding ke port laptopmu yang kemarin
+      - "28712:5432" # Tetap binding ke port laptopmu yang kemarin
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -24,7 +24,7 @@ services:
     build: .
     container_name: sims_backend
     ports:
-      - "8080:8080"
+      - "8888:8888"
     environment:
       - DB_HOST=postgres_db
       - DB_PORT=5432
@@ -35,6 +35,14 @@ services:
     depends_on:
       - postgres_db
       - redis_cache
+      - travel_api
+
+  # 4. Travel API (Node.js Microservice)
+  travel_api:
+    build: ./travel-api
+    container_name: sims_travel_api
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres_data:
