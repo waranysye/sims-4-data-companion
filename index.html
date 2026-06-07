@@ -136,6 +136,7 @@
         }
         .card-title-icon { font-size: 1.5rem; }
 
+        .btn-group { display: flex; gap: 10px; align-items: center; }
         .api-btn {
             display: inline-flex;
             align-items: center;
@@ -151,6 +152,24 @@
             box-shadow: 0 4px 20px rgba(0,188,212,0.35);
         }
         .api-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,188,212,0.5); }
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            background: rgba(0,229,255,0.08);
+            color: #80deea;
+            border: 1px solid rgba(0,229,255,0.25);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .refresh-btn:hover { background: rgba(0,229,255,0.15); }
+        .refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
+        .last-updated { font-size: 11px; color: rgba(224,247,249,0.3); font-weight: 600; margin-top: 4px; }
 
         /* === TABLE === */
         .table-wrap { overflow-x: auto; padding: 0 0 8px; }
@@ -301,14 +320,23 @@
 
     <div class="card">
         <div class="card-header">
-            <div class="card-title">
-                <span class="card-title-icon">🐚</span>
-                Career & Trait Analytics
+            <div>
+                <div class="card-title">
+                    <span class="card-title-icon">🐚</span>
+                    Career & Trait Analytics
+                </div>
+                <div class="last-updated" id="last-updated">Fetching data...</div>
             </div>
-            <a href="http://localhost:8888/swagger" target="_blank" class="api-btn">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                API Docs
-            </a>
+            <div class="btn-group">
+                <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+                <a href="http://localhost:8888/swagger" target="_blank" class="api-btn">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    API Docs
+                </a>
+            </div>
         </div>
 
         <div class="table-wrap">
@@ -362,6 +390,7 @@
 
     async function fetchSimsData() {
         const tableBody = document.getElementById('data-table-body');
+        const lastUpdatedEl = document.getElementById('last-updated');
         try {
             // 1. Auth
             const loginRes = await fetch('http://localhost:8888/api/v1/auth/login', {
@@ -372,48 +401,63 @@
             const loginData = await loginRes.json();
             if (!loginData.success || !loginData.token) throw new Error('Authentication failed');
 
-            // 2. Fetch Data
+            // 2. Fetch Data (no-cache: bypass browser cache to always get fresh data)
             const res = await fetch('http://localhost:8888/api/v1/recommendations', {
-                headers: { 'Authorization': `Bearer ${loginData.token}` }
+                headers: {
+                    'Authorization': `Bearer ${loginData.token}`,
+                    'Cache-Control': 'no-cache'
+                }
             });
             const result = await res.json();
 
             tableBody.innerHTML = '';
 
             if (result.success && Array.isArray(result.data)) {
-                result.data.forEach(item => {
-                    let travelHTML = `<span class="no-travel">No island getaway found 🐠</span>`;
-                    if (item.recommended_vacation) {
-                        const v = item.recommended_vacation;
-                        travelHTML = `
-                            <div class="travel-dest">🌴 ${v.destination}</div>
-                            <div class="travel-desc">${v.description}</div>
-                            <div class="travel-price">§${v.price} simoleons</div>
-                        `;
-                    }
-
-                    const moodClass = getMoodClass(item.ideal_mood);
-                    tableBody.innerHTML += `
+                if (result.data.length === 0) {
+                    tableBody.innerHTML = `
                         <tr>
-                            <td>
-                                <div class="career-name">${item.career_name || '-'}</div>
-                                <div class="career-branch">${item.branch || '-'}</div>
+                            <td colspan="5" class="loading-cell">
+                                <div class="loading-text">No data found. Use Swagger to add entries via POST. 🐚</div>
                             </td>
-                            <td>
-                                <div class="salary-badge">§${item.base_salary || 0}<span class="salary-unit">/hr</span></div>
-                            </td>
-                            <td>
-                                <span class="mood-badge ${moodClass}">${item.ideal_mood || '-'}</span>
-                            </td>
-                            <td>
-                                <div class="trait-name">${item.trait_name || '-'}</div>
-                                <div class="score-chip">Score ${item.compatibility_score}/5</div>
-                                <div class="reason-text">${item.reason || ''}</div>
-                            </td>
-                            <td>${travelHTML}</td>
                         </tr>
                     `;
-                });
+                } else {
+                    result.data.forEach(item => {
+                        let travelHTML = `<span class="no-travel">No island getaway found 🐠</span>`;
+                        if (item.recommended_vacation) {
+                            const v = item.recommended_vacation;
+                            travelHTML = `
+                                <div class="travel-dest">🌴 ${v.destination}</div>
+                                <div class="travel-desc">${v.description}</div>
+                                <div class="travel-price">§${v.price} simoleons</div>
+                            `;
+                        }
+                        const moodClass = getMoodClass(item.ideal_mood);
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <div class="career-name">${item.career_name || '-'}</div>
+                                    <div class="career-branch">${item.branch || '-'}</div>
+                                </td>
+                                <td>
+                                    <div class="salary-badge">§${item.base_salary || 0}<span class="salary-unit">/hr</span></div>
+                                </td>
+                                <td>
+                                    <span class="mood-badge ${moodClass}">${item.ideal_mood || '-'}</span>
+                                </td>
+                                <td>
+                                    <div class="trait-name">${item.trait_name || '-'}</div>
+                                    <div class="score-chip">Score ${item.compatibility_score}/5</div>
+                                    <div class="reason-text">${item.reason || ''}</div>
+                                </td>
+                                <td>${travelHTML}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                // Update last-updated timestamp
+                const now = new Date();
+                lastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()} · ${result.data.length} entries`;
             } else {
                 throw new Error(result.error ? result.error.message : 'Invalid data format');
             }
@@ -428,7 +472,35 @@
                     </td>
                 </tr>
             `;
+            if (lastUpdatedEl) lastUpdatedEl.textContent = 'Failed to fetch data';
         }
+    }
+
+    async function refreshData() {
+        const btn = document.getElementById('refresh-btn');
+        const tableBody = document.getElementById('data-table-body');
+        const lastUpdatedEl = document.getElementById('last-updated');
+
+        // Show spinner
+        btn.classList.add('spinning');
+        btn.disabled = true;
+        lastUpdatedEl.textContent = 'Refreshing...';
+
+        // Show loading row
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="loading-cell">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Syncing with server...</div>
+                </td>
+            </tr>
+        `;
+
+        await fetchSimsData();
+
+        // Stop spinner
+        btn.classList.remove('spinning');
+        btn.disabled = false;
     }
 
     fetchSimsData();
