@@ -11,5 +11,8 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app/main .
-EXPOSE 8080
+COPY --from=builder /app/swagger.html .
+COPY --from=builder /app/api-contract.yaml .
+COPY --from=builder /app/db ./db
+EXPOSE 8888
 CMD ["./main"]
