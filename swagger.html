@@ -3,293 +3,382 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sims 4 Data Companion — API Documentation</title>
+  <title>Sims 4 Data Companion — API Docs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: 'Nunito', sans-serif;
-      background: linear-gradient(160deg, #0a2e3a 0%, #0e4a5c 35%, #0c7c8c 100%);
-      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
     }
 
-    /* ===== TOP NAVBAR ===== */
-    .top-bar {
+    /* ===== NAVBAR ===== */
+    .navbar {
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(10, 46, 58, 0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(0,229,255,0.15);
-      padding: 14px 32px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 0 32px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .top-bar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .top-bar-brand .icon { font-size: 1.6rem; }
-    .top-bar-brand .title {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #e0f7f9;
-      line-height: 1.1;
-    }
-    .top-bar-brand .subtitle-small {
-      font-size: 11px;
-      color: rgba(128,222,234,0.6);
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .top-bar-links { display: flex; gap: 12px; }
-    .top-bar-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    .btn-dash {
-      background: rgba(0,229,255,0.1);
-      color: #80deea;
-      border: 1px solid rgba(0,229,255,0.2);
-    }
-    .btn-dash:hover { background: rgba(0,229,255,0.2); }
-
-    /* ===== VERSION BADGE ===== */
-    .version-banner {
-      background: rgba(0,229,255,0.06);
-      border-bottom: 1px solid rgba(0,229,255,0.08);
-      padding: 10px 32px;
+    .navbar-brand {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
+      text-decoration: none;
     }
-    .v-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+    .navbar-logo {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .navbar-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f0f6fc;
+    }
+    .navbar-sep { color: #30363d; margin: 0 6px; }
+    .navbar-section { font-size: 14px; color: #8b949e; font-weight: 500; }
+
+    .nav-chips { display: flex; gap: 8px; align-items: center; }
+    .chip {
       padding: 3px 10px;
-      border-radius: 999px;
+      border-radius: 20px;
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
     }
-    .chip-green  { background: rgba(102,187,106,0.15); color: #a5d6a7; border: 1px solid rgba(102,187,106,0.25); }
-    .chip-blue   { background: rgba(0,188,212,0.15);   color: #80deea; border: 1px solid rgba(0,188,212,0.25); }
-    .chip-orange { background: rgba(255,167,38,0.15);  color: #ffcc80; border: 1px solid rgba(255,167,38,0.25); }
+    .chip-live   { background: rgba(35,134,54,0.2);  color: #3fb950; border: 1px solid rgba(35,134,54,0.4); }
+    .chip-v      { background: rgba(88,166,255,0.1); color: #58a6ff; border: 1px solid rgba(88,166,255,0.2); }
+    .chip-jwt    { background: rgba(210,153,34,0.1); color: #d29922; border: 1px solid rgba(210,153,34,0.25); }
 
-    /* ===== SWAGGER UI OVERRIDES ===== */
+    /* ===== SWAGGER WRAPPER ===== */
     #swagger-ui {
-      max-width: 1100px;
+      max-width: 1060px;
       margin: 0 auto;
-      padding: 32px 20px 80px;
+      padding: 36px 24px 80px;
     }
 
-    /* Remove default swagger header */
+    /* Hide default topbar */
     .swagger-ui .topbar { display: none !important; }
-    .swagger-ui .info { margin: 0 0 24px; }
 
-    /* Info block */
+    /* Info */
+    .swagger-ui .info { margin: 0 0 28px; }
     .swagger-ui .info .title {
-      font-family: 'Nunito', sans-serif !important;
-      font-size: 2rem !important;
-      font-weight: 900 !important;
-      color: #e0f7f9 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.75rem !important;
+      font-weight: 700 !important;
+      color: #f0f6fc !important;
     }
     .swagger-ui .info .description p,
-    .swagger-ui .info .description li,
-    .swagger-ui .info .description code {
-      font-family: 'Nunito', sans-serif !important;
-      color: rgba(224,247,249,0.75) !important;
+    .swagger-ui .info .description li {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 14px !important;
+      color: #8b949e !important;
+      line-height: 1.6 !important;
     }
     .swagger-ui .info .description h2 {
-      color: #80deea !important;
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 900 !important;
-      font-size: 1rem !important;
-      margin-top: 16px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: #c9d1d9 !important;
+      margin: 20px 0 8px !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
     }
-    .swagger-ui .info .description pre,
-    .swagger-ui .info .description code {
-      background: rgba(0,0,0,0.3) !important;
-      border: 1px solid rgba(0,229,255,0.15) !important;
-      border-radius: 8px !important;
-      color: #80deea !important;
+    .swagger-ui .info .description code,
+    .swagger-ui .info .description pre {
+      font-family: 'SFMono-Regular', Consolas, monospace !important;
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+      color: #79c0ff !important;
+      font-size: 13px !important;
+      padding: 2px 6px !important;
+    }
+    .swagger-ui .info .description pre { padding: 12px 16px !important; display: block; }
+
+    /* Servers */
+    .swagger-ui .servers label,
+    .swagger-ui .servers select {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      color: #8b949e !important;
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+    }
+    .swagger-ui .scheme-container {
+      background: #0d1117 !important;
+      box-shadow: none !important;
+      border-bottom: 1px solid #21262d !important;
+      padding: 16px 0 !important;
+      margin-bottom: 20px !important;
     }
 
     /* Authorize button */
     .swagger-ui .btn.authorize {
-      background: linear-gradient(135deg, #00acc1, #00838f) !important;
-      border-color: transparent !important;
-      color: #fff !important;
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 800 !important;
-      border-radius: 10px !important;
-      padding: 8px 20px !important;
-      box-shadow: 0 4px 16px rgba(0,188,212,0.3) !important;
+      background: #238636 !important;
+      border: 1px solid rgba(240,246,252,0.1) !important;
+      color: #f0f6fc !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      border-radius: 6px !important;
+      padding: 6px 16px !important;
+      box-shadow: none !important;
     }
-    .swagger-ui .btn.authorize:hover { opacity: 0.9; }
-    .swagger-ui .btn.authorize svg { fill: #fff !important; }
+    .swagger-ui .btn.authorize:hover { background: #2ea043 !important; }
+    .swagger-ui .btn.authorize svg { fill: #f0f6fc !important; }
 
-    /* Tag sections */
+    /* Tags */
     .swagger-ui .opblock-tag {
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 900 !important;
-      font-size: 1.1rem !important;
-      color: #e0f7f9 !important;
-      border-bottom: 1px solid rgba(0,229,255,0.15) !important;
-      padding: 14px 0 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      color: #f0f6fc !important;
+      border-bottom: 1px solid #21262d !important;
+      padding: 12px 0 !important;
+      margin-top: 8px !important;
+    }
+    .swagger-ui .opblock-tag small {
+      font-family: 'Inter', sans-serif !important;
+      color: #8b949e !important;
+      font-size: 13px !important;
     }
 
     /* Operation blocks */
     .swagger-ui .opblock {
-      border-radius: 12px !important;
-      border: 1px solid rgba(0,229,255,0.12) !important;
-      background: rgba(10,60,75,0.5) !important;
-      backdrop-filter: blur(10px) !important;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.2) !important;
-      margin-bottom: 12px !important;
-      overflow: hidden !important;
+      border-radius: 8px !important;
+      border: 1px solid #21262d !important;
+      background: #161b22 !important;
+      box-shadow: none !important;
+      margin-bottom: 8px !important;
     }
-    .swagger-ui .opblock .opblock-summary {
-      padding: 14px 18px !important;
-      border-radius: 0 !important;
-    }
+    .swagger-ui .opblock.is-open { border-color: #30363d !important; }
+    .swagger-ui .opblock .opblock-summary { padding: 12px 16px !important; }
     .swagger-ui .opblock-summary-description {
-      font-family: 'Nunito', sans-serif !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: #c9d1d9 !important;
+    }
+    .swagger-ui .opblock-summary-path,
+    .swagger-ui .opblock-summary-path__deprecated {
+      font-family: 'SFMono-Regular', Consolas, monospace !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: #f0f6fc !important;
+    }
+
+    /* Method badges */
+    .swagger-ui .opblock-summary-method {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 11px !important;
       font-weight: 700 !important;
-      color: #e0f7f9 !important;
+      min-width: 70px !important;
+      border-radius: 4px !important;
+      letter-spacing: 0.5px !important;
     }
-    .swagger-ui .opblock-summary-path {
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 900 !important;
-      color: #e0f7f9 !important;
+    .swagger-ui .opblock-get    { border-left: 3px solid #58a6ff !important; background: rgba(88,166,255,0.04) !important; }
+    .swagger-ui .opblock-post   { border-left: 3px solid #3fb950 !important; background: rgba(63,185,80,0.04) !important; }
+    .swagger-ui .opblock-put    { border-left: 3px solid #d29922 !important; background: rgba(210,153,34,0.04) !important; }
+    .swagger-ui .opblock-delete { border-left: 3px solid #f85149 !important; background: rgba(248,81,73,0.04) !important; }
+    .swagger-ui .opblock-get    .opblock-summary-method { background: rgba(88,166,255,0.15) !important;  color: #79c0ff !important; }
+    .swagger-ui .opblock-post   .opblock-summary-method { background: rgba(63,185,80,0.15) !important;   color: #56d364 !important; }
+    .swagger-ui .opblock-put    .opblock-summary-method { background: rgba(210,153,34,0.15) !important;  color: #e3b341 !important; }
+    .swagger-ui .opblock-delete .opblock-summary-method { background: rgba(248,81,73,0.15) !important;   color: #f85149 !important; }
+
+    /* Inner content */
+    .swagger-ui .opblock-body { background: #0d1117 !important; }
+    .swagger-ui .opblock-section-header {
+      background: #161b22 !important;
+      border-top: 1px solid #21262d !important;
+    }
+    .swagger-ui .opblock-section-header label,
+    .swagger-ui .opblock-section-header h4 {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #8b949e !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.8px !important;
     }
 
-    /* Method colors */
-    .swagger-ui .opblock-get    { border-left: 4px solid #4dd0e1 !important; }
-    .swagger-ui .opblock-post   { border-left: 4px solid #a5d6a7 !important; }
-    .swagger-ui .opblock-put    { border-left: 4px solid #ffcc80 !important; }
-    .swagger-ui .opblock-delete { border-left: 4px solid #f48fb1 !important; }
-    .swagger-ui .opblock-get    .opblock-summary-method { background: #00838f !important; border-radius: 8px !important; }
-    .swagger-ui .opblock-post   .opblock-summary-method { background: #388e3c !important; border-radius: 8px !important; }
-    .swagger-ui .opblock-put    .opblock-summary-method { background: #e65100 !important; border-radius: 8px !important; }
-    .swagger-ui .opblock-delete .opblock-summary-method { background: #c62828 !important; border-radius: 8px !important; }
+    /* Description in expanded block */
+    .swagger-ui .opblock-description-wrapper p,
+    .swagger-ui .markdown p,
+    .swagger-ui .markdown li {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      color: #8b949e !important;
+      line-height: 1.6 !important;
+    }
 
-    /* Inner body / description */
-    .swagger-ui .opblock-body,
-    .swagger-ui .opblock-section,
+    /* Parameters table */
+    .swagger-ui table thead tr th,
+    .swagger-ui .parameters-col_name,
+    .swagger-ui .parameter__name {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #8b949e !important;
+    }
     .swagger-ui table tbody tr td,
-    .swagger-ui .response-col_description,
-    .swagger-ui .markdown p {
-      font-family: 'Nunito', sans-serif !important;
-      color: rgba(224,247,249,0.8) !important;
+    .swagger-ui .parameter__type,
+    .swagger-ui .parameter__in {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      color: #c9d1d9 !important;
+      background: transparent !important;
     }
+    .swagger-ui table { border-collapse: collapse !important; }
+    .swagger-ui table tbody tr { border-bottom: 1px solid #21262d !important; }
 
-    /* Parameters & labels */
-    .swagger-ui label,
-    .swagger-ui .parameter__name,
-    .swagger-ui .parameter__type {
-      font-family: 'Nunito', sans-serif !important;
-      color: #80deea !important;
-      font-weight: 700 !important;
+    /* Labels */
+    .swagger-ui label {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      color: #8b949e !important;
     }
+    .swagger-ui .required { color: #f85149 !important; }
 
     /* Inputs */
     .swagger-ui input[type=text],
     .swagger-ui textarea,
     .swagger-ui select {
-      background: rgba(0,0,0,0.3) !important;
-      border: 1px solid rgba(0,229,255,0.25) !important;
-      border-radius: 8px !important;
-      color: #e0f7f9 !important;
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 600 !important;
+      font-family: 'SFMono-Regular', Consolas, monospace !important;
+      font-size: 13px !important;
+      background: #0d1117 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+      color: #c9d1d9 !important;
+      padding: 8px 12px !important;
     }
     .swagger-ui input[type=text]:focus,
-    .swagger-ui textarea:focus {
-      border-color: #00e5ff !important;
-      outline: none !important;
-    }
-
-    /* Execute button */
-    .swagger-ui .btn.execute {
-      background: linear-gradient(135deg, #00acc1, #00838f) !important;
-      border-color: transparent !important;
-      color: #fff !important;
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 800 !important;
-      border-radius: 8px !important;
-    }
+    .swagger-ui textarea:focus { border-color: #58a6ff !important; outline: none !important; box-shadow: 0 0 0 3px rgba(88,166,255,0.1) !important; }
 
     /* Try it out button */
     .swagger-ui .btn.try-out__btn {
-      border-color: rgba(0,229,255,0.4) !important;
-      color: #80deea !important;
-      font-family: 'Nunito', sans-serif !important;
-      font-weight: 700 !important;
-      border-radius: 8px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      border: 1px solid #30363d !important;
+      color: #c9d1d9 !important;
+      border-radius: 6px !important;
+      background: transparent !important;
     }
-    .swagger-ui .btn.try-out__btn:hover { background: rgba(0,229,255,0.1) !important; }
+    .swagger-ui .btn.try-out__btn:hover { background: #21262d !important; }
+    .swagger-ui .btn.try-out__btn.cancel { border-color: #f85149 !important; color: #f85149 !important; }
 
-    /* Response codes */
-    .swagger-ui .response-col_status { font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; }
+    /* Execute button */
+    .swagger-ui .btn.execute {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      background: #238636 !important;
+      border: 1px solid rgba(240,246,252,0.1) !important;
+      color: #f0f6fc !important;
+      border-radius: 6px !important;
+      padding: 7px 18px !important;
+    }
+    .swagger-ui .btn.execute:hover { background: #2ea043 !important; }
+
+    /* Response section */
+    .swagger-ui .responses-wrapper { background: #0d1117 !important; }
+    .swagger-ui .response-col_status {
+      font-family: 'Inter', sans-serif !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      color: #c9d1d9 !important;
+    }
+    .swagger-ui .response-col_description {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      color: #8b949e !important;
+    }
     .swagger-ui .responses-inner h4,
-    .swagger-ui .responses-inner h5 { font-family: 'Nunito', sans-serif !important; color: #80deea !important; }
-    .swagger-ui .highlight-code .microlight { background: rgba(0,0,0,0.4) !important; border-radius: 8px !important; }
+    .swagger-ui .responses-inner h5 {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #8b949e !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.8px !important;
+    }
 
-    /* Schema */
-    .swagger-ui .model,
-    .swagger-ui .model-box { background: rgba(0,0,0,0.2) !important; border-radius: 10px !important; }
-    .swagger-ui .model-title { font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; color: #80deea !important; }
+    /* Code highlight */
+    .swagger-ui .highlight-code .microlight,
+    .swagger-ui .curl-command .microlight {
+      font-family: 'SFMono-Regular', Consolas, monospace !important;
+      font-size: 12px !important;
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+      color: #c9d1d9 !important;
+      padding: 12px !important;
+    }
+
+    /* Copy button */
+    .swagger-ui .copy-to-clipboard {
+      background: #21262d !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+    }
+
+    /* Model / Schema */
+    .swagger-ui section.models { border: 1px solid #21262d !important; border-radius: 8px !important; background: #161b22 !important; }
+    .swagger-ui section.models .model-container { background: #0d1117 !important; border-radius: 6px !important; margin: 8px !important; }
+    .swagger-ui .model-title { font-family: 'Inter', sans-serif !important; font-weight: 600 !important; color: #f0f6fc !important; }
+    .swagger-ui .model, .swagger-ui .model * { font-family: 'SFMono-Regular', Consolas, monospace !important; font-size: 12px !important; color: #c9d1d9 !important; }
+    .swagger-ui .prop-type { color: #79c0ff !important; }
+    .swagger-ui .prop-format { color: #56d364 !important; }
+
+    /* Search/filter */
+    .swagger-ui .filter-container { background: #0d1117 !important; border-bottom: 1px solid #21262d !important; padding: 12px 24px !important; }
+    .swagger-ui .filter-container .operation-filter-input {
+      font-family: 'Inter', sans-serif !important;
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 6px !important;
+      color: #c9d1d9 !important;
+    }
 
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 7px; height: 7px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-    ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.25); border-radius: 4px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <div class="top-bar">
-    <div class="top-bar-brand">
-      <span class="icon">🐚</span>
-      <div>
-        <div class="title">Sims 4 Data Companion</div>
-        <div class="subtitle-small">API Documentation · v2.0.0</div>
-      </div>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-logo">🐚</div>
+      <span class="navbar-name">sims-4-data-companion</span>
+      <span class="navbar-sep">/</span>
+      <span class="navbar-section">API Reference</span>
     </div>
-    <div class="top-bar-links">
-      <a href="../index.html" class="top-bar-link btn-dash">
-        ← Dashboard
-      </a>
+    <div class="nav-chips">
+      <span class="chip chip-live">● Live</span>
+      <span class="chip chip-v">v2.0.0</span>
+      <span class="chip chip-jwt">🔒 JWT</span>
     </div>
   </div>
 
-  <!-- Version / Info Banner -->
-  <div class="version-banner">
-    <span class="v-chip chip-green">● Live</span>
-    <span class="v-chip chip-blue">Go · Fiber v2</span>
-    <span class="v-chip chip-blue">OpenAPI 3.0.3</span>
-    <span class="v-chip chip-orange">🔒 JWT Auth</span>
-    <span class="v-chip chip-blue">Redis Cache</span>
-  </div>
-
-  <!-- Swagger UI mount point -->
   <div id="swagger-ui"></div>
 
   <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
@@ -309,10 +398,6 @@
         docExpansion: 'list',
         filter: true,
         tryItOutEnabled: false,
-        requestInterceptor: (req) => {
-          console.log('[Sims API] Request:', req.method, req.url);
-          return req;
-        }
       });
     };
   </script>
