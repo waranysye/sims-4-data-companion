@@ -7,30 +7,57 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func TestGetRecommendations_Success(t *testing.T) {
-	// 1. Siapkan data tiruan (Mock)
+func newTestUsecase(mockData []repository.CareerRecommendation, mockErr error) *CareerUsecase {
 	mockRepo := &repository.MockCareerRepository{
-		MockData: []repository.CareerRecommendation{
-			{CareerName: "Astronaut", TraitName: "Genius", CompatibilityScore: 5},
-		},
-		MockErr: nil,
+		MockData: mockData,
+		MockErr:  mockErr,
 	}
-
-	// 2. Konek ke Redis client kosong untuk testing
 	fakeRedis := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+	return NewCareerUsecase(mockRepo, fakeRedis)
+}
 
-	// 3. Inisialisasi Usecase dengan menginjeksikan MockRepo (SOLID implementation)
-	careerUsecase := NewCareerUsecase(mockRepo, fakeRedis)
+func TestGetRecommendations_Success(t *testing.T) {
+	uc := newTestUsecase([]repository.CareerRecommendation{
+		{CareerName: "Astronaut", TraitName: "Genius", CompatibilityScore: 5},
+	}, nil)
 
-	// 4. Jalankan fungsi yang mau dites
-	result, err := careerUsecase.GetRecommendations()
-
-	// 5. Validasi hasilnya harus sukses sesuai ekspektasi
+	result, err := uc.GetRecommendations()
 	if err != nil {
-		t.Fatalf("Ekspektasi tidak error, tapi dapet error: %v", err)
+		t.Fatalf("Expected no error, got: %v", err)
 	}
-
 	if len(result) != 1 || result[0].CareerName != "Astronaut" {
-		t.Errorf("Data yang dihasilkan tidak sesuai dengan mock template")
+		t.Errorf("Data tidak sesuai dengan mock template")
 	}
 }
+
+func TestCreateRecommendation_Success(t *testing.T) {
+	uc := newTestUsecase(nil, nil)
+	req := RecommendationRequest{
+		CareerID:           1,
+		TraitID:            2,
+		CompatibilityScore: 5,
+		Reason:             "Test Create",
+	}
+	if err := uc.CreateRecommendation(req); err != nil {
+		t.Fatalf("Expected no error on create, got: %v", err)
+	}
+}
+
+func TestUpdateRecommendation_Success(t *testing.T) {
+	uc := newTestUsecase(nil, nil)
+	req := UpdateRecommendationRequest{
+		CompatibilityScore: 4,
+		Reason:             "Test Update",
+	}
+	if err := uc.UpdateRecommendation(1, 2, req); err != nil {
+		t.Fatalf("Expected no error on update, got: %v", err)
+	}
+}
+
+func TestDeleteRecommendation_Success(t *testing.T) {
+	uc := newTestUsecase(nil, nil)
+	if err := uc.DeleteRecommendation(1, 2); err != nil {
+		t.Fatalf("Expected no error on delete, got: %v", err)
+	}
+}
+
