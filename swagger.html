@@ -3,19 +3,318 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sims DaaS Swagger UI</title>
+  <title>Sims 4 Data Companion — API Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(160deg, #0a2e3a 0%, #0e4a5c 35%, #0c7c8c 100%);
+      min-height: 100vh;
+    }
+
+    /* ===== TOP NAVBAR ===== */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(10, 46, 58, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0,229,255,0.15);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .top-bar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .top-bar-brand .icon { font-size: 1.6rem; }
+    .top-bar-brand .title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #e0f7f9;
+      line-height: 1.1;
+    }
+    .top-bar-brand .subtitle-small {
+      font-size: 11px;
+      color: rgba(128,222,234,0.6);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .top-bar-links { display: flex; gap: 12px; }
+    .top-bar-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-dash {
+      background: rgba(0,229,255,0.1);
+      color: #80deea;
+      border: 1px solid rgba(0,229,255,0.2);
+    }
+    .btn-dash:hover { background: rgba(0,229,255,0.2); }
+
+    /* ===== VERSION BADGE ===== */
+    .version-banner {
+      background: rgba(0,229,255,0.06);
+      border-bottom: 1px solid rgba(0,229,255,0.08);
+      padding: 10px 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .v-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .chip-green  { background: rgba(102,187,106,0.15); color: #a5d6a7; border: 1px solid rgba(102,187,106,0.25); }
+    .chip-blue   { background: rgba(0,188,212,0.15);   color: #80deea; border: 1px solid rgba(0,188,212,0.25); }
+    .chip-orange { background: rgba(255,167,38,0.15);  color: #ffcc80; border: 1px solid rgba(255,167,38,0.25); }
+
+    /* ===== SWAGGER UI OVERRIDES ===== */
+    #swagger-ui {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    /* Remove default swagger header */
+    .swagger-ui .topbar { display: none !important; }
+    .swagger-ui .info { margin: 0 0 24px; }
+
+    /* Info block */
+    .swagger-ui .info .title {
+      font-family: 'Nunito', sans-serif !important;
+      font-size: 2rem !important;
+      font-weight: 900 !important;
+      color: #e0f7f9 !important;
+    }
+    .swagger-ui .info .description p,
+    .swagger-ui .info .description li,
+    .swagger-ui .info .description code {
+      font-family: 'Nunito', sans-serif !important;
+      color: rgba(224,247,249,0.75) !important;
+    }
+    .swagger-ui .info .description h2 {
+      color: #80deea !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 900 !important;
+      font-size: 1rem !important;
+      margin-top: 16px !important;
+    }
+    .swagger-ui .info .description pre,
+    .swagger-ui .info .description code {
+      background: rgba(0,0,0,0.3) !important;
+      border: 1px solid rgba(0,229,255,0.15) !important;
+      border-radius: 8px !important;
+      color: #80deea !important;
+    }
+
+    /* Authorize button */
+    .swagger-ui .btn.authorize {
+      background: linear-gradient(135deg, #00acc1, #00838f) !important;
+      border-color: transparent !important;
+      color: #fff !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 800 !important;
+      border-radius: 10px !important;
+      padding: 8px 20px !important;
+      box-shadow: 0 4px 16px rgba(0,188,212,0.3) !important;
+    }
+    .swagger-ui .btn.authorize:hover { opacity: 0.9; }
+    .swagger-ui .btn.authorize svg { fill: #fff !important; }
+
+    /* Tag sections */
+    .swagger-ui .opblock-tag {
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 900 !important;
+      font-size: 1.1rem !important;
+      color: #e0f7f9 !important;
+      border-bottom: 1px solid rgba(0,229,255,0.15) !important;
+      padding: 14px 0 !important;
+    }
+
+    /* Operation blocks */
+    .swagger-ui .opblock {
+      border-radius: 12px !important;
+      border: 1px solid rgba(0,229,255,0.12) !important;
+      background: rgba(10,60,75,0.5) !important;
+      backdrop-filter: blur(10px) !important;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2) !important;
+      margin-bottom: 12px !important;
+      overflow: hidden !important;
+    }
+    .swagger-ui .opblock .opblock-summary {
+      padding: 14px 18px !important;
+      border-radius: 0 !important;
+    }
+    .swagger-ui .opblock-summary-description {
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 700 !important;
+      color: #e0f7f9 !important;
+    }
+    .swagger-ui .opblock-summary-path {
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 900 !important;
+      color: #e0f7f9 !important;
+    }
+
+    /* Method colors */
+    .swagger-ui .opblock-get    { border-left: 4px solid #4dd0e1 !important; }
+    .swagger-ui .opblock-post   { border-left: 4px solid #a5d6a7 !important; }
+    .swagger-ui .opblock-put    { border-left: 4px solid #ffcc80 !important; }
+    .swagger-ui .opblock-delete { border-left: 4px solid #f48fb1 !important; }
+    .swagger-ui .opblock-get    .opblock-summary-method { background: #00838f !important; border-radius: 8px !important; }
+    .swagger-ui .opblock-post   .opblock-summary-method { background: #388e3c !important; border-radius: 8px !important; }
+    .swagger-ui .opblock-put    .opblock-summary-method { background: #e65100 !important; border-radius: 8px !important; }
+    .swagger-ui .opblock-delete .opblock-summary-method { background: #c62828 !important; border-radius: 8px !important; }
+
+    /* Inner body / description */
+    .swagger-ui .opblock-body,
+    .swagger-ui .opblock-section,
+    .swagger-ui table tbody tr td,
+    .swagger-ui .response-col_description,
+    .swagger-ui .markdown p {
+      font-family: 'Nunito', sans-serif !important;
+      color: rgba(224,247,249,0.8) !important;
+    }
+
+    /* Parameters & labels */
+    .swagger-ui label,
+    .swagger-ui .parameter__name,
+    .swagger-ui .parameter__type {
+      font-family: 'Nunito', sans-serif !important;
+      color: #80deea !important;
+      font-weight: 700 !important;
+    }
+
+    /* Inputs */
+    .swagger-ui input[type=text],
+    .swagger-ui textarea,
+    .swagger-ui select {
+      background: rgba(0,0,0,0.3) !important;
+      border: 1px solid rgba(0,229,255,0.25) !important;
+      border-radius: 8px !important;
+      color: #e0f7f9 !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 600 !important;
+    }
+    .swagger-ui input[type=text]:focus,
+    .swagger-ui textarea:focus {
+      border-color: #00e5ff !important;
+      outline: none !important;
+    }
+
+    /* Execute button */
+    .swagger-ui .btn.execute {
+      background: linear-gradient(135deg, #00acc1, #00838f) !important;
+      border-color: transparent !important;
+      color: #fff !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 800 !important;
+      border-radius: 8px !important;
+    }
+
+    /* Try it out button */
+    .swagger-ui .btn.try-out__btn {
+      border-color: rgba(0,229,255,0.4) !important;
+      color: #80deea !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+    }
+    .swagger-ui .btn.try-out__btn:hover { background: rgba(0,229,255,0.1) !important; }
+
+    /* Response codes */
+    .swagger-ui .response-col_status { font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; }
+    .swagger-ui .responses-inner h4,
+    .swagger-ui .responses-inner h5 { font-family: 'Nunito', sans-serif !important; color: #80deea !important; }
+    .swagger-ui .highlight-code .microlight { background: rgba(0,0,0,0.4) !important; border-radius: 8px !important; }
+
+    /* Schema */
+    .swagger-ui .model,
+    .swagger-ui .model-box { background: rgba(0,0,0,0.2) !important; border-radius: 10px !important; }
+    .swagger-ui .model-title { font-family: 'Nunito', sans-serif !important; font-weight: 900 !important; color: #80deea !important; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.25); border-radius: 4px; }
+  </style>
 </head>
 <body>
-<div id="swagger-ui"></div>
-<script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
-<script>
-  window.onload = () => {
-    window.ui = SwaggerUIBundle({
-      url: '/api-contract.yaml',
-      dom_id: '#swagger-ui',
-    });
-  };
-</script>
+
+  <!-- Top Navigation Bar -->
+  <div class="top-bar">
+    <div class="top-bar-brand">
+      <span class="icon">🐚</span>
+      <div>
+        <div class="title">Sims 4 Data Companion</div>
+        <div class="subtitle-small">API Documentation · v2.0.0</div>
+      </div>
+    </div>
+    <div class="top-bar-links">
+      <a href="../index.html" class="top-bar-link btn-dash">
+        ← Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Version / Info Banner -->
+  <div class="version-banner">
+    <span class="v-chip chip-green">● Live</span>
+    <span class="v-chip chip-blue">Go · Fiber v2</span>
+    <span class="v-chip chip-blue">OpenAPI 3.0.3</span>
+    <span class="v-chip chip-orange">🔒 JWT Auth</span>
+    <span class="v-chip chip-blue">Redis Cache</span>
+  </div>
+
+  <!-- Swagger UI mount point -->
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/api-contract.yaml',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: 'BaseLayout',
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 2,
+        docExpansion: 'list',
+        filter: true,
+        tryItOutEnabled: false,
+        requestInterceptor: (req) => {
+          console.log('[Sims API] Request:', req.method, req.url);
+          return req;
+        }
+      });
+    };
+  </script>
 </body>
 </html>

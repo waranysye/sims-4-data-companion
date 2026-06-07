@@ -1,140 +1,374 @@
 openapi: 3.0.3
+
 info:
-  title: Sims 4 DaaS (Data as a Service) Companion API
-  description: API Contract untuk menyajikan rekomendasi kecocokan antara Karier dan Sifat (Traits) di The Sims 4. Dibuat khusus untuk kebutuhan Data Platform Intern tiket.com.
-  version: 1.0.0
+  title: Sims 4 Data Companion — API
+  description: |
+    ## Overview
+    A **Data-as-a-Service (DaaS)** REST API built with **Go (Fiber v2)** that aggregates career recommendations,
+    trait compatibility scores, and travel package suggestions from The Sims 4 game universe.
+
+    ## Authentication
+    All endpoints (except `/auth/login`) are protected by **JWT Bearer Token** authentication.
+
+    **How to authenticate:**
+    1. Call `POST /auth/login` with the credentials below.
+    2. Copy the `token` from the response.
+    3. Click the **🔒 Authorize** button at the top and enter: `Bearer <your_token>`
+
+    **Demo Credentials:**
+    ```
+    username: admin
+    password: sims4pro
+    ```
+
+    ## Architecture
+    This API is the core of a microservice system:
+    - **Go Backend** — REST + gRPC server (port 8888)
+    - **Node.js Travel API** — External microservice for travel packages (port 3000)
+    - **PostgreSQL** — Relational database
+    - **Redis** — Caching layer (5-minute TTL, auto-invalidated on mutations)
+
+  version: 2.0.0
+  contact:
+    name: Sims 4 Data Companion
+    url: https://github.com/waranysye/sims-4-data-companion
+
 servers:
   - url: http://localhost:8888/api/v1
     description: Local Development Server
 
+tags:
+  - name: Auth
+    description: Authentication — obtain a JWT token
+  - name: Recommendations
+    description: Career & trait compatibility recommendations (CRUD)
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Enter your JWT token. Example: `Bearer eyJhbGci...`"
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          example: sims4pro
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    TravelPackage:
+      type: object
+      properties:
+        destination:
+          type: string
+          example: "Mt. Komorebi (Snowy Escape)"
+        description:
+          type: string
+          example: "Bermain ski, snowboarding, dan relaksasi di Onsen Bathhouse."
+        price:
+          type: integer
+          example: 1200
+        ideal_mood:
+          type: string
+          example: Energized
+        recommended_for_salary:
+          type: integer
+          example: 400
+
+    Recommendation:
+      type: object
+      properties:
+        career_name:
+          type: string
+          example: Astronaut
+        branch:
+          type: string
+          example: Space Ranger
+        base_salary:
+          type: integer
+          example: 422
+        ideal_mood:
+          type: string
+          example: Energized
+        trait_name:
+          type: string
+          example: Active
+        compatibility_score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        reason:
+          type: string
+          example: "Sifat Active secara alami memberikan mood Energized yang wajib dimiliki oleh Space Ranger."
+        recommended_vacation:
+          $ref: '#/components/schemas/TravelPackage'
+
+    CreateRecommendationRequest:
+      type: object
+      required: [career_id, trait_id, compatibility_score, reason]
+      properties:
+        career_id:
+          type: integer
+          example: 3
+          description: "ID of the career (see seeder data: 1=Tech Guru, 3=Astronaut, 5=Writer, 7=Culinary, 9=Painter)"
+        trait_id:
+          type: integer
+          example: 5
+          description: "ID of the trait (1=Genius, 2=Geek, 3=Ambitious, 4=Creative, 5=Active, 6=Romantic, 7=Perfectionist)"
+        compatibility_score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        reason:
+          type: string
+          example: "Sifat Active sangat cocok untuk Astronaut yang butuh stamina tinggi."
+
+    UpdateRecommendationRequest:
+      type: object
+      properties:
+        compatibility_score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 3
+        reason:
+          type: string
+          example: "Update: skor direvisi setelah balancing dari Expansion Pack terbaru."
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 400
+            message:
+              type: string
+              example: "Invalid request body"
+            trace_id:
+              type: string
+              example: "ERR-SIMS4-DATA-ENGINE"
+
 paths:
-  /recommendations:
-    get:
-      summary: Mengambil semua data rekomendasi karir dan trait
-      description: Endpoint ini mengembalikan daftar kombinasi karier, cabang karier, gaji, emosi ideal, dan kecocokan sifat berdasarkan database.
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login & obtain JWT token
+      description: |
+        Authenticates a user and returns a signed **JWT token** (valid for 15 minutes).
+        Use the returned token in the **🔒 Authorize** button to access protected endpoints.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Berhasil mengambil data
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /recommendations:
+    get:
+      tags: [Recommendations]
+      summary: Get all enriched recommendations
+      description: |
+        Returns all career-trait compatibility recommendations **enriched with travel package suggestions**
+        from the Node.js microservice.
+
+        Responses are **cached in Redis for 5 minutes** for high performance.
+        Cache is automatically invalidated when data is mutated (POST/PUT/DELETE).
+      responses:
+        '200':
+          description: Successfully retrieved enriched recommendations
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: success
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        career_name:
-                          type: string
-                          example: Tech Guru
-                        branch:
-                          type: string
-                          example: Startup Entrepreneur
-                        base_salary:
-                          type: integer
-                          example: 51
-                        ideal_mood:
-                          type: string
-                          example: Focused
-                        trait_name:
-                          type: string
-                          example: Genius
-                        compatibility_score:
-                          type: integer
-                          example: 5
-                        reason:
-                          type: string
-                          example: Sifat Genius sangat membantu mempertahankan mood Focused saat coding.
-        '500':
-          description: Terjadi kesalahan pada server internal
+                      $ref: '#/components/schemas/Recommendation'
+        '401':
+          description: Unauthorized — missing or invalid JWT token
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Gagal mengambil data platform.
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
     post:
-      summary: Menambahkan data kecocokan karier dan trait baru
+      tags: [Recommendations]
+      summary: Create a new career-trait recommendation
+      description: |
+        Adds a new compatibility entry between a **career** and a **trait**.
+        The pair `(career_id, trait_id)` must be unique (composite primary key).
+
+        **Redis cache is automatically cleared** after a successful insert.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - career_id
-                - trait_id
-                - compatibility_score
-                - reason
-              properties:
-                career_id:
-                  type: integer
-                  example: 1
-                trait_id:
-                  type: integer
-                  example: 2
-                compatibility_score:
-                  type: integer
-                  example: 5
-                reason:
-                  type: string
-                  example: Cocok sekali untuk mempercepat skill programming.
+              $ref: '#/components/schemas/CreateRecommendationRequest'
       responses:
         '201':
-          description: Berhasil menambahkan data
+          description: Recommendation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request — invalid body or duplicate primary key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /recommendations/{career_id}/{trait_id}:
     put:
-      summary: Mengubah data skor atau alasan kecocokan
+      tags: [Recommendations]
+      summary: Update a recommendation's score or reason
+      description: |
+        Updates the `compatibility_score` and/or `reason` for an existing career-trait pair.
+
+        **Redis cache is automatically cleared** after a successful update.
       parameters:
-        - in: path
-          name: career_id
+        - name: career_id
+          in: path
           required: true
           schema:
             type: integer
-        - in: path
-          name: trait_id
+          example: 3
+        - name: trait_id
+          in: path
           required: true
           schema:
             type: integer
+          example: 5
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                compatibility_score:
-                  type: integer
-                  example: 4
-                reason:
-                  type: string
-                  example: Update skor karena balancing dari expansion terbaru.
+              $ref: '#/components/schemas/UpdateRecommendationRequest'
       responses:
         '200':
-          description: Berhasil mengubah data
+          description: Recommendation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request — invalid path parameters or body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
     delete:
-      summary: Menghapus kecocokan karier dan trait
+      tags: [Recommendations]
+      summary: Delete a career-trait recommendation
+      description: |
+        Permanently removes a career-trait compatibility entry from the database.
+
+        **Redis cache is automatically cleared** after a successful deletion.
       parameters:
-        - in: path
-          name: career_id
+        - name: career_id
+          in: path
           required: true
           schema:
             type: integer
-        - in: path
-          name: trait_id
+          example: 3
+        - name: trait_id
+          in: path
           required: true
           schema:
             type: integer
+          example: 5
       responses:
         '200':
-          description: Berhasil menghapus data
+          description: Recommendation deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request — invalid path parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
