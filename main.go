@@ -51,8 +51,13 @@ func main() {
 	v1.Delete("/recommendations/:career_id/:trait_id", handler.JWTMiddleware, careerHandler.DeleteRecommendation)
 
 	// Melayani file Swagger UI dan spesifikasi kontrak API
-	app.Static("/swagger", "./swagger.html")
-	app.Static("/api-contract.yaml", "./api-contract.yaml")
+	app.Get("/swagger", func(c *fiber.Ctx) error {
+		return c.SendFile("./swagger.html")
+	})
+	app.Get("/api-contract.yaml", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "application/yaml")
+		return c.SendFile("./api-contract.yaml")
+	})
 
 	// 📡 Inisialisasi dan jalankan gRPC Server di Goroutine (Background Thread)
 	grpcServer := handler.NewGrpcServer(careerUsecase)
