@@ -18,6 +18,18 @@ type TravelPackage struct {
 	RecommendedForSalary int    `json:"recommended_for_salary"`
 }
 
+type RecommendationRequest struct {
+	CareerID           int    `json:"career_id"`
+	TraitID            int    `json:"trait_id"`
+	CompatibilityScore int    `json:"compatibility_score"`
+	Reason             string `json:"reason"`
+}
+
+type UpdateRecommendationRequest struct {
+	CompatibilityScore int    `json:"compatibility_score"`
+	Reason             string `json:"reason"`
+}
+
 type TravelAPIResponse struct {
 	Success bool            `json:"success"`
 	Data    []TravelPackage `json:"data"`
@@ -30,6 +42,9 @@ type EnrichedRecommendation struct {
 
 type CareerUsecaseInterface interface {
 	GetRecommendations() ([]EnrichedRecommendation, error)
+	CreateRecommendation(req RecommendationRequest) error
+	UpdateRecommendation(careerID, traitID int, req UpdateRecommendationRequest) error
+	DeleteRecommendation(careerID, traitID int) error
 }
 
 type CareerUsecase struct {
@@ -113,5 +128,33 @@ func (u *CareerUsecase) GetRecommendations() ([]EnrichedRecommendation, error) {
 	}
 
 	return enrichedList, nil
+}
+
+func (u *CareerUsecase) clearCache() {
+	u.Rdb.Del(u.Ctx, "api:v1:enriched_recommendations")
+}
+
+func (u *CareerUsecase) CreateRecommendation(req RecommendationRequest) error {
+	err := u.Repo.CreateRecommendation(req.CareerID, req.TraitID, req.CompatibilityScore, req.Reason)
+	if err == nil {
+		u.clearCache()
+	}
+	return err
+}
+
+func (u *CareerUsecase) UpdateRecommendation(careerID, traitID int, req UpdateRecommendationRequest) error {
+	err := u.Repo.UpdateRecommendation(careerID, traitID, req.CompatibilityScore, req.Reason)
+	if err == nil {
+		u.clearCache()
+	}
+	return err
+}
+
+func (u *CareerUsecase) DeleteRecommendation(careerID, traitID int) error {
+	err := u.Repo.DeleteRecommendation(careerID, traitID)
+	if err == nil {
+		u.clearCache()
+	}
+	return err
 }
 

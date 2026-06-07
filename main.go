@@ -44,7 +44,11 @@ func main() {
 	careerUsecase := usecase.NewCareerUsecase(careerRepo, rdb)
 	careerHandler := handler.NewCareerHandler(careerUsecase)
 
-	app.Get("/api/v1/recommendations", handler.JWTMiddleware, careerHandler.FetchRecommendations)
+	v1 := app.Group("/api/v1")
+	v1.Get("/recommendations", handler.JWTMiddleware, careerHandler.FetchRecommendations)
+	v1.Post("/recommendations", handler.JWTMiddleware, careerHandler.CreateRecommendation)
+	v1.Put("/recommendations/:career_id/:trait_id", handler.JWTMiddleware, careerHandler.UpdateRecommendation)
+	v1.Delete("/recommendations/:career_id/:trait_id", handler.JWTMiddleware, careerHandler.DeleteRecommendation)
 
 	// Melayani file Swagger UI dan spesifikasi kontrak API
 	app.Static("/swagger", "./swagger.html")

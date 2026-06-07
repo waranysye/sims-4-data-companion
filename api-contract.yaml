@@ -4,7 +4,7 @@ info:
   description: API Contract untuk menyajikan rekomendasi kecocokan antara Karier dan Sifat (Traits) di The Sims 4. Dibuat khusus untuk kebutuhan Data Platform Intern tiket.com.
   version: 1.0.0
 servers:
-  - url: http://localhost:8080/api/v1
+  - url: http://localhost:8888/api/v1
     description: Local Development Server
 
 paths:
@@ -62,3 +62,79 @@ paths:
                   message:
                     type: string
                     example: Gagal mengambil data platform.
+    post:
+      summary: Menambahkan data kecocokan karier dan trait baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - career_id
+                - trait_id
+                - compatibility_score
+                - reason
+              properties:
+                career_id:
+                  type: integer
+                  example: 1
+                trait_id:
+                  type: integer
+                  example: 2
+                compatibility_score:
+                  type: integer
+                  example: 5
+                reason:
+                  type: string
+                  example: Cocok sekali untuk mempercepat skill programming.
+      responses:
+        '201':
+          description: Berhasil menambahkan data
+
+  /recommendations/{career_id}/{trait_id}:
+    put:
+      summary: Mengubah data skor atau alasan kecocokan
+      parameters:
+        - in: path
+          name: career_id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: trait_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                compatibility_score:
+                  type: integer
+                  example: 4
+                reason:
+                  type: string
+                  example: Update skor karena balancing dari expansion terbaru.
+      responses:
+        '200':
+          description: Berhasil mengubah data
+    delete:
+      summary: Menghapus kecocokan karier dan trait
+      parameters:
+        - in: path
+          name: career_id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: trait_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Berhasil menghapus data

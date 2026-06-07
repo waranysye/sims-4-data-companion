@@ -19,6 +19,9 @@ type CareerRecommendation struct {
 
 type CareerRepositoryInterface interface {
 	GetRecommendations() ([]CareerRecommendation, error)
+	CreateRecommendation(careerID, traitID, compatibilityScore int, reason string) error
+	UpdateRecommendation(careerID, traitID, compatibilityScore int, reason string) error
+	DeleteRecommendation(careerID, traitID int) error
 }
 
 type CareerRepository struct {
@@ -30,7 +33,6 @@ func NewCareerRepository(db *pgxpool.Pool) *CareerRepository {
 }
 
 func (r *CareerRepository) GetRecommendations() ([]CareerRecommendation, error) {
-	// 👈 Query SQL kita perbarui untuk menarik semua kolom dari careers dan career_recommendations
 	query := `
 		SELECT 
 			c.name, c.branch, c.base_salary, c.ideal_mood, 
@@ -49,7 +51,6 @@ func (r *CareerRepository) GetRecommendations() ([]CareerRecommendation, error) 
 	var list []CareerRecommendation
 	for rows.Next() {
 		var row CareerRecommendation
-		// 👈 Scan semua data baru ke dalam struct variabel masing-masing
 		err := rows.Scan(
 			&row.CareerName, &row.Branch, &row.BaseSalary, &row.IdealMood,
 			&row.TraitName, &row.CompatibilityScore, &row.Reason,
@@ -60,4 +61,22 @@ func (r *CareerRepository) GetRecommendations() ([]CareerRecommendation, error) 
 		list = append(list, row)
 	}
 	return list, nil
+}
+
+func (r *CareerRepository) CreateRecommendation(careerID, traitID, compatibilityScore int, reason string) error {
+	query := `INSERT INTO career_recommendations (career_id, trait_id, compatibility_score, reason) VALUES ($1, $2, $3, $4)`
+	_, err := r.DB.Exec(context.Background(), query, careerID, traitID, compatibilityScore, reason)
+	return err
+}
+
+func (r *CareerRepository) UpdateRecommendation(careerID, traitID, compatibilityScore int, reason string) error {
+	query := `UPDATE career_recommendations SET compatibility_score = $1, reason = $2 WHERE career_id = $3 AND trait_id = $4`
+	_, err := r.DB.Exec(context.Background(), query, compatibilityScore, reason, careerID, traitID)
+	return err
+}
+
+func (r *CareerRepository) DeleteRecommendation(careerID, traitID int) error {
+	query := `DELETE FROM career_recommendations WHERE career_id = $1 AND trait_id = $2`
+	_, err := r.DB.Exec(context.Background(), query, careerID, traitID)
+	return err
 }
